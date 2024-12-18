@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 import pandas as pd
 import csv
 import os
+from stockAnalyzer import analyze_stocks_with_combined_logic
 
 app = Flask(__name__)
 
@@ -47,6 +48,19 @@ def get_korea_stocks():
         return jsonify({"data": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/run-analysis", methods=["POST"])
+def run_stock_analysis():
+    try:
+        # stockAnalyzer.py의 함수 호출
+        input_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
+        output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
+        
+        analyze_stocks_with_combined_logic(input_folder, output_path)
+        
+        return jsonify({"message": "Stock analysis completed successfully.", "output_file": output_path})
+    except Exception as e:
+        return jsonify({"error": f"Failed to run analysis: {str(e)}"}), 500
 
 if __name__ == "__main__":
     # 환경 변수 PORT가 있으면 사용하고, 없으면 5000번 포트를 사용
