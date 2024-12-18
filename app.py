@@ -3,6 +3,7 @@ import pandas as pd
 import csv
 import os
 from stockAnalyzer import analyze_stocks_with_combined_logic
+from korea_stock_downloader import download_stock_data
 
 app = Flask(__name__)
 
@@ -54,7 +55,7 @@ def run_stock_analysis():
     try:
         # stockAnalyzer.py의 함수 호출
         input_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
-        output_path = os.path.join(os.getcwd(), "korea_analysis_combined1.csv")
+        output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
         
         analyze_stocks_with_combined_logic(input_folder, output_path)
         
@@ -64,11 +65,20 @@ def run_stock_analysis():
 
 @app.route("/download-analysis", methods=["GET"])
 def download_analysis():
-    output_path = os.path.join(os.getcwd(), "korea_analysis_combined1.csv")
+    output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
     try:
         return send_file(output_path, as_attachment=True)
     except Exception as e:
         return jsonify({"error": f"Failed to download file: {str(e)}"}), 500
+
+@app.route("/download-stock-data", methods=["POST"])
+def trigger_stock_data_download():
+    try:
+        output_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
+        download_stock_data(output_folder)
+        return jsonify({"message": "Stock data download completed.", "folder": output_folder})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     # 환경 변수 PORT가 있으면 사용하고, 없으면 5000번 포트를 사용
