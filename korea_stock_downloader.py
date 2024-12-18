@@ -10,7 +10,7 @@ stock_codes = {
 }
 
 # 데이터를 가져오는 함수
-def fetch_yahoo_finance_data(stock_codes, output_folder):
+def fetch_yahoo_finance_data(output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
