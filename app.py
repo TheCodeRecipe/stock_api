@@ -1,86 +1,39 @@
-from flask import Flask, jsonify, send_file
+import yfinance as yf
 import pandas as pd
-import csv
 import os
-from stockAnalyzer import analyze_stocks_with_combined_logic
-from korea_stock_downloader import download_stock_data
+from datetime import datetime
 
-app = Flask(__name__)
+# 주식 종목 코드 리스트 (여기서 정의)
+stock_codes = {
+    "005930.KS": "삼성전자",
+    "000660.KS": "SK하이닉스",
+}
 
-# 프로젝트의 루트 디렉토리를 기준으로 설정
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 오늘 날짜 설정
+today = datetime.now().strftime("%Y-%m-%d")
 
-# 샘플 CSV 파일 경로
-CSV_FILE = os.path.join(BASE_DIR, "sample_data", "sample.csv")
+# 데이터를 가져오는 함수
+def fetch_yahoo_finance_data(output_folder):
+    for code, name in stock_codes.items():  # stock_codes는 내부에서 사용
+        try:
+            stock_data = yf.download(code, start="2020-01-01", end=today)
 
-# 결과 CSV 파일 경로
-OUTPUT_CSV = os.path.join(BASE_DIR, "korea_analysis_combined.csv")
+            # 컬럼 및 데이터 처리
+            stock_data.columns = stock_data.columns.get_level_values(0)
+            stock_data = stock_data.reset_index()
+            stock_data = stock_data.rename(columns={
+                "Open": "Open", "High": "High", "Low": "Low", 
+                "Close": "Close", "Adj Close": "Adj Close", "Volume": "Volume"
+            })
+            stock_data["StockName"] = name
+            stock_data["StockCode"] = code.replace(".KS", "").replace(".KQ", "")  # 확장자 제거
 
-@app.route("/")
-def home():
-    return jsonify({"message": "Welcome to the stock API sample project!"})
+            # 컬럼 순서 재정리
+            stock_data = stock_data[["Date", "StockName", "StockCode", "Open", "High", "Low", "Close", "Volume", "Adj Close"]]
 
-@app.route("/stocks", methods=["GET"])
-def get_stocks():
-    try:
-        stocks = []
-        with open(CSV_FILE, "r") as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                stocks.append(row)
-        return jsonify({"data": stocks})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# /korea-stocks 경로: 분석된 주식 데이터를 가져오기
-@app.route("/korea-stocks", methods=["GET"])
-def get_korea_stocks():
-    try:
-        # CSV 파일 읽기
-        if not os.path.exists(OUTPUT_CSV):
-            return jsonify({"error": "Analysis data not found. Please run the analysis first."}), 404
-        
-        # CSV를 DataFrame으로 불러오기
-        data = pd.read_csv(OUTPUT_CSV)
-        data = data.fillna("")  # 결측값은 빈 문자열로 처리
-        
-        # DataFrame을 JSON으로 변환 후 반환
-        result = data.to_dict(orient="records")  # JSON 형태: 리스트[딕셔너리, ...]
-        return jsonify({"data": result})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/run-analysis", methods=["POST"])
-def run_stock_analysis():
-    try:
-        # stockAnalyzer.py의 함수 호출
-        input_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
-        output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
-        
-        analyze_stocks_with_combined_logic(input_folder, output_path)
-        
-        return jsonify({"message": "Stock analysis completed successfully.", "output_file": output_path})
-    except Exception as e:
-        return jsonify({"error": f"Failed to run analysis: {str(e)}"}), 500
-
-@app.route("/download-analysis", methods=["GET"])
-def download_analysis():
-    output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
-    try:
-        return send_file(output_path, as_attachment=True)
-    except Exception as e:
-        return jsonify({"error": f"Failed to download file: {str(e)}"}), 500
-
-@app.route("/download-stock-data", methods=["POST"])
-def trigger_stock_data_download():
-    try:
-        output_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
-        download_stock_data(output_folder)
-        return jsonify({"message": "Stock data download completed.", "folder": output_folder})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    # 환경 변수 PORT가 있으면 사용하고, 없으면 5000번 포트를 사용
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+            # 파일 저장
+            file_name = os.path.join(output_folder, f"{name}_{stock_data['StockCode'][0]}_{today}.csv")
+            stock_data.to_csv(file_name, index=False, encoding="utf-8-sig")
+            print(f"{name} ({code}) 데이터 저장 완료: {file_name}")
+        except Exception as e:
+            print(f"에러 발생: {name} ({code}): {e}")

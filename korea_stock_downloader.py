@@ -1,44 +1,52 @@
-import FinanceDataReader as fdr
+import yfinance as yf
 import pandas as pd
 import os
 from datetime import datetime
 
 # 주식 종목 코드 리스트
 stock_codes = {
-    "005930": "삼성전자",
-    "000660": "SK하이닉스",
-    # 필요에 따라 코드 추가
+    "005930.KS": "삼성전자",
+    "000660.KS": "SK하이닉스",
 }
 
-# 주식 데이터를 다운로드하고 CSV 파일로 저장하는 함수
-def download_stock_data(output_folder):
-    today = datetime.now().strftime("%Y-%m-%d")
-    chunks = [dict(list(stock_codes.items())[i:i + 10]) for i in range(0, len(stock_codes), 10)]
-
+# 데이터를 가져오는 함수
+def fetch_yahoo_finance_data(stock_codes, output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for idx, chunk in enumerate(chunks, start=1):
-        all_data = []
+    today = datetime.now().strftime("%Y-%m-%d")
+    for code, name in stock_codes.items():
+        try:
+            # Yahoo Finance에서 데이터 가져오기
+            stock_data = yf.download(code, start="2020-01-01", end=today)
 
-        for code, name in chunk.items():
-            try:
-                price_df = fdr.DataReader(code, start='2020-01-01', end=today)
-                price_df['StockName'] = name
-                price_df['StockCode'] = code
-                all_data.append(price_df)
-                print(f"{name} ({code}) 데이터 처리 완료.")
-            except Exception as e:
-                print(f"에러 발생: {name} ({code}): {e}")
+            # 컬럼명 재정의
+            stock_data = stock_data.reset_index()
+            stock_data = stock_data.rename(columns={
+                "Open": "Open",
+                "High": "High",
+                "Low": "Low",
+                "Close": "Close",
+                "Adj Close": "Adj Close",
+                "Volume": "Volume"
+            })
 
-        if all_data:
-            final_df = pd.concat(all_data)
-            columns_order = ['StockName', 'StockCode'] + [col for col in final_df.columns if col not in ['StockName', 'StockCode']]
-            final_df = final_df[columns_order]
+            # StockName과 StockCode 추가 (.KS 제거)
+            stock_data["StockName"] = name
+            stock_data["StockCode"] = code.replace(".KS", "").replace(".KQ", "")
 
-            file_name = f"korea_stocks_price_data_part_{idx}_{today}.csv"
-            output_path = os.path.join(output_folder, file_name)
-            final_df.to_csv(output_path, encoding='utf-8-sig', index=True)
-            print(f"파일 저장 완료: {output_path}")
-        else:
-            print(f"저장할 데이터가 없습니다 (파트 {idx}).")
+            # 컬럼 순서 재정리
+            stock_data = stock_data[["Date", "StockName", "StockCode", "Open", "High", "Low", "Close", "Volume", "Adj Close"]]
+
+            # 파일 저장
+            file_name = os.path.join(output_folder, f"{name}_{stock_data['StockCode'][0]}_{today}.csv")
+            stock_data.to_csv(file_name, index=False, encoding="utf-8-sig")
+            
+            print(f"{name} ({code}) 데이터 저장 완료: {file_name}")
+        except Exception as e:
+            print(f"에러 발생: {name} ({code}): {e}")
+
+# 메인 실행 조건 추가 (독립 실행 시만 작동)
+if __name__ == "__main__":
+    output_folder = "korea_stocks_data_parts"
+    fetch_yahoo_finance_data(stock_codes, output_folder)
