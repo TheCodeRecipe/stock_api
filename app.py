@@ -4,8 +4,14 @@ import os
 
 app = Flask(__name__)
 
+# 프로젝트의 루트 디렉토리를 기준으로 설정
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 샘플 CSV 파일 경로
-CSV_FILE = os.path.join("sample_data", "sample.csv")
+CSV_FILE = os.path.join(BASE_DIR, "sample_data", "sample.csv")
+
+# 결과 CSV 파일 경로
+OUTPUT_CSV = os.path.join(BASE_DIR, "korea_analysis_combined.csv")
 
 @app.route("/")
 def home():
