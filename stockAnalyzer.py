@@ -621,7 +621,7 @@ def analyze_stocks_with_combined_logic(input_folder, output_path):
 if __name__ == "__main__":
     # 입력 폴더와 출력 파일 경로 설정
     input_folder = os.path.join(os.getcwd(), "korea_stocks_data_parts")
-    output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
+    output_path = os.path.join(os.getcwd(), "korea_analysis_combined1.csv")
     
     # 함수 호출: 분석 실행 및 CSV 저장
     analyze_stocks_with_combined_logic(input_folder, output_path)
