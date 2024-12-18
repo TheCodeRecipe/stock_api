@@ -49,4 +49,4 @@ def fetch_yahoo_finance_data(output_folder):
 # 메인 실행 조건 추가 (독립 실행 시만 작동)
 if __name__ == "__main__":
     output_folder = "korea_stocks_data_parts"
-    fetch_yahoo_finance_data(stock_codes, output_folder)
+    fetch_yahoo_finance_data(output_folder)
