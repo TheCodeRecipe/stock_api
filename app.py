@@ -32,6 +32,7 @@ def get_stocks():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 # /korea-stocks 경로: 분석된 주식 데이터를 가져오기
 @app.route("/korea-stocks", methods=["GET"])
 def get_korea_stocks():
@@ -49,6 +50,7 @@ def get_korea_stocks():
         return jsonify({"data": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/run-analysis", methods=["POST"])
 def run_stock_analysis():
