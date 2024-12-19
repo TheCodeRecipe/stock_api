@@ -1,0 +1,51 @@
+import yfinance as yf
+import pandas as pd
+import os
+from datetime import datetime
+
+# 데이터를 저장할 폴더
+output_folder = "korea_stocks_data_parts"
+
+# 저장할 폴더 생성
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# 오늘 날짜 설정
+today = datetime.now().strftime("%Y-%m-%d")
+
+# 데이터를 가져오는 함수
+def fetch_yahoo_finance_data(stock_codes, output_folder):
+    for code, name in stock_codes.items():
+        try:
+            # Yahoo Finance에서 데이터 가져오기
+            stock_data = yf.download(code, start="2020-01-01", end=today)
+
+            # 컬럼 확인 및 단일 레벨로 변환
+            stock_data.columns = stock_data.columns.get_level_values(0)
+
+            # 컬럼명 재정의 (가격 순서 올바르게 설정)
+            stock_data = stock_data.reset_index()
+            stock_data = stock_data.rename(columns={
+                "Open": "Open",
+                "High": "High",
+                "Low": "Low",
+                "Close": "Close",
+                "Adj Close": "Adj Close",
+                "Volume": "Volume"
+            })
+
+            # StockName과 StockCode 추가 (.KS 제거)
+            stock_data["StockName"] = name
+            stock_data["StockCode"] = code.replace(".KS", "").replace(".KQ", "")  # 확장자 제거
+
+            # 컬럼 순서 재정리
+            stock_data = stock_data[["Date", "StockName", "StockCode", "Open", "High", "Low", "Close", "Volume", "Adj Close"]]
+
+            # 파일 저장 (인덱스 제거)
+            file_name = os.path.join(output_folder, f"{name}_{stock_data['StockCode'][0]}_{today}.csv")
+            stock_data.to_csv(file_name, index=False, encoding="utf-8-sig")
+            
+            print(f"{name} ({code}) 데이터 저장 완료: {file_name}")
+        except Exception as e:
+            print(f"에러 발생: {name} ({code}): {e}")
+
