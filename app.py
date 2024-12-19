@@ -67,6 +67,11 @@ def get_stock_by_code(stock_code):
 @app.route("/update-stocks", methods=["POST"])
 def update_all_stocks():
     try:
+        # 폴더 생성
+        if not os.path.exists(OUTPUT_FOLDER):
+            os.makedirs(OUTPUT_FOLDER)
+            print(f"폴더 생성 완료: {OUTPUT_FOLDER}")
+
         # 1. 기존 CSV 파일 삭제
         if os.path.exists(OUTPUT_FOLDER):
             for file in os.listdir(OUTPUT_FOLDER):

@@ -3,13 +3,6 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 데이터를 저장할 폴더
-output_folder = "korea_stocks_data_parts"
-
-# 저장할 폴더 생성
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-
 # 오늘 날짜 설정
 today = datetime.now().strftime("%Y-%m-%d")
 
