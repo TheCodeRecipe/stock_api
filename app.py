@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import pandas as pd
 import csv
@@ -96,7 +96,7 @@ def update_all_stocks():
             raise Exception("DB 연결 실패")
 
         # 5. 분석 결과를 데이터베이스에 업로드
-        upload_data_to_db(connection, OUTPUT_CSV)
+        upload_data_to_db(connection, OUTPUT_CSV, market_type="KR")
         
         # 6. 연결 종료
         connection.close()
@@ -123,6 +123,38 @@ def trigger_stock_data_download():
         return jsonify({"message": "Stock data download completed.", "folder": output_folder})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/last-update", methods=["GET"])
+def get_last_update():
+    try:
+        market_type = request.args.get("market_type", "KR")  # 기본값은 'KR'
+        conn = connect_to_db()
+        cur = conn.cursor()
+
+        query = """
+            SELECT update_time, market_type 
+            FROM update_logs 
+            WHERE market_type = %s 
+            ORDER BY update_time DESC 
+            LIMIT 1
+        """
+        cur.execute(query, (market_type,))
+        last_update = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if last_update:
+            return jsonify({
+                "last_update": last_update[0],
+                "market_type": last_update[1]
+            })
+        else:
+            return jsonify({"message": f"No updates yet for market type '{market_type}'."}), 404
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch last update: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     # 환경 변수 PORT가 있으면 사용하고, 없으면 5000번 포트를 사용

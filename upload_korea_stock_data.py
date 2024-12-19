@@ -20,7 +20,7 @@ def connect_to_db():
         return None
 
 # 데이터 삽입 함수
-def upload_data_to_db(conn, csv_file):
+def upload_data_to_db(conn, csv_file, market_type="KR"):
     try:
         # CSV 파일 읽기
         data = pd.read_csv(csv_file)
@@ -58,6 +58,14 @@ def upload_data_to_db(conn, csv_file):
                 row['Support_1'], row['Support_2'], row['Support_3'], row['Resistance_1'], row['Resistance_2'], row['Resistance_3'],
                 upload_timestamp  # 업로드 날짜 추가
             ))
+
+        # 업데이트 기록 추가
+        log_query = """
+        INSERT INTO update_logs (update_time, market_type, description)
+        VALUES (%s, %s, %s)
+        """
+        log_description = f"{market_type} 시장 데이터 {len(data)}건 업데이트 완료"
+        cur.execute(log_query, (upload_timestamp, market_type, log_description))
 
         # 커밋
         conn.commit()
