@@ -2,3 +2,4 @@ flask
 pandas
 yfinance
 psycopg2
+python-dotenv
