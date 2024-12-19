@@ -101,7 +101,6 @@ def update_all_stocks():
     except Exception as e:
         return jsonify({"error": f"Failed to update stocks: {str(e)}"}), 500
 
-
 @app.route("/download-analysis", methods=["GET"])
 def download_analysis():
     output_path = os.path.join(os.getcwd(), "korea_analysis_combined.csv")
