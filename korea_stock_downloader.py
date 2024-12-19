@@ -1,17 +1,18 @@
 import yfinance as yf
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 오늘 날짜 설정
 today = datetime.now().strftime("%Y-%m-%d")
+tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
 # 데이터를 가져오는 함수
 def fetch_yahoo_finance_data(stock_codes, output_folder):
     for code, name in stock_codes.items():
         try:
             # Yahoo Finance에서 데이터 가져오기
-            stock_data = yf.download(code, start="2020-01-01", end=today)
+            stock_data = yf.download(code, start="2020-01-01", end=tomorrow)
 
             # 컬럼 확인 및 단일 레벨로 변환
             stock_data.columns = stock_data.columns.get_level_values(0)

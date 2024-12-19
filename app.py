@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_file
+from flask_cors import CORS
 import pandas as pd
 import csv
 import os
@@ -8,6 +9,9 @@ from korea_stock_downloader import fetch_yahoo_finance_data
 from upload_korea_stock_data import connect_to_db, upload_data_to_db
 
 app = Flask(__name__)
+
+# CORS 설정
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://stock-api-w332.onrender.com"]}})
 
 # 프로젝트의 루트 디렉토리를 기준으로 설정
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

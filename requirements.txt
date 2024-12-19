@@ -3,3 +3,4 @@ pandas
 yfinance
 psycopg2
 python-dotenv
+flask_cors
