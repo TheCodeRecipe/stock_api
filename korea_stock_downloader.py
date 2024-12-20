@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 def fetch_yahoo_finance_data(stock_codes, output_folder):
     # 오늘 날짜 설정
     today = datetime.now().strftime("%Y-%m-%d")
-    # tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
     for code, name in stock_codes.items():
         try:
             # Yahoo Finance에서 데이터 가져오기
-            stock_data = yf.download(code, start="2020-01-01", end=today)
+            stock_data = yf.download(code, start="2020-01-01", end=tomorrow)
 
             # 데이터가 비어 있는 경우
             if stock_data.empty:
