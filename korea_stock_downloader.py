@@ -3,12 +3,13 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 
-# 오늘 날짜 설정
-today = datetime.now().strftime("%Y-%m-%d")
-tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
 # 데이터를 가져오는 함수
 def fetch_yahoo_finance_data(stock_codes, output_folder):
+    # 오늘 날짜 설정
+    today = datetime.now().strftime("%Y-%m-%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+
     for code, name in stock_codes.items():
         try:
             # Yahoo Finance에서 데이터 가져오기
