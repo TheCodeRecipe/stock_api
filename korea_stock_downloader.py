@@ -25,7 +25,7 @@ def fetch_yahoo_finance_data(stock_codes, output_folder):
 
             # 컬럼명 재정의 (가격 순서 올바르게 설정)
             stock_data = stock_data.reset_index()
-
+            print(f"{name} ({code}) 데이터 컬럼: {stock_data.columns}")
             # 컬럼 존재 여부 확인
             if "Adj Close" in stock_data.columns:
                 stock_data = stock_data.rename(columns={
