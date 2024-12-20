@@ -11,7 +11,7 @@ from upload_korea_stock_data import connect_to_db, upload_data_to_db
 app = Flask(__name__)
 
 # CORS 설정
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://stock-api-w332.onrender.com"]}})
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://stock-signal-six.vercel.app"]}})
 
 # 프로젝트의 루트 디렉토리를 기준으로 설정
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
