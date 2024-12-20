@@ -14,19 +14,36 @@ def fetch_yahoo_finance_data(stock_codes, output_folder):
             # Yahoo Finance에서 데이터 가져오기
             stock_data = yf.download(code, start="2020-01-01", end=today)
 
+            # 데이터가 비어 있는 경우
+            if stock_data.empty:
+                print(f"데이터가 비어 있음: {name} ({code})")
+                continue
+
+
             # 컬럼 확인 및 단일 레벨로 변환
             stock_data.columns = stock_data.columns.get_level_values(0)
 
             # 컬럼명 재정의 (가격 순서 올바르게 설정)
             stock_data = stock_data.reset_index()
-            stock_data = stock_data.rename(columns={
-                "Open": "Open",
-                "High": "High",
-                "Low": "Low",
-                "Close": "Close",
-                "Adj Close": "Adj Close",
-                "Volume": "Volume"
-            })
+
+            # 컬럼 존재 여부 확인
+            if "Adj Close" in stock_data.columns:
+                stock_data = stock_data.rename(columns={
+                    "Open": "Open",
+                    "High": "High",
+                    "Low": "Low",
+                    "Close": "Close",
+                    "Adj Close": "Adj Close",
+                    "Volume": "Volume"
+                })
+            else:
+                stock_data = stock_data.rename(columns={
+                    "Open": "Open",
+                    "High": "High",
+                    "Low": "Low",
+                    "Close": "Close",
+                    "Volume": "Volume"
+                })
 
             # StockName과 StockCode 추가 (.KS 제거)
             stock_data["StockName"] = name
