@@ -23,27 +23,24 @@ def fetch_yahoo_finance_data(stock_codes, output_folder):
             # 컬럼 확인 및 단일 레벨로 변환
             stock_data.columns = stock_data.columns.get_level_values(0)
 
+            # Adj Close 확인
+            if "Adj Close" in stock_data.columns:
+                stock_data["Adj Close"] = stock_data["Adj Close"]
+            else:
+                print(f"'Adj Close'가 없음. 'Close'를 대신 사용합니다: {name} ({code})")
+                stock_data["Adj Close"] = stock_data["Close"]
+
+
             # 컬럼명 재정의 (가격 순서 올바르게 설정)
             stock_data = stock_data.reset_index()
-            print(f"{name} ({code}) 데이터 컬럼: {stock_data.columns}")
-            # 컬럼 존재 여부 확인
-            if "Adj Close" in stock_data.columns:
-                stock_data = stock_data.rename(columns={
-                    "Open": "Open",
-                    "High": "High",
-                    "Low": "Low",
-                    "Close": "Close",
-                    "Adj Close": "Adj Close",
-                    "Volume": "Volume"
-                })
-            else:
-                stock_data = stock_data.rename(columns={
-                    "Open": "Open",
-                    "High": "High",
-                    "Low": "Low",
-                    "Close": "Close",
-                    "Volume": "Volume"
-                })
+            stock_data = stock_data.rename(columns={
+                "Open": "Open",
+                "High": "High",
+                "Low": "Low",
+                "Close": "Close",
+                "Adj Close": "Adj Close",
+                "Volume": "Volume"
+            })
 
             # StockName과 StockCode 추가 (.KS 제거)
             stock_data["StockName"] = name
