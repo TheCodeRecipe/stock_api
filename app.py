@@ -99,7 +99,7 @@ def verify_jwt_token():
 def update_all_stocks():
     try:
         # JWT 토큰 인증
-        verify_jwt_token()
+        # verify_jwt_token()
 
         # 폴더 생성
         if not os.path.exists(OUTPUT_FOLDER):
@@ -132,9 +132,9 @@ def update_all_stocks():
         connection.close()
         
         return jsonify({"message": "All stock data updated successfully!"})
-    except HTTPException as e:
-        # 인증 실패 시 에러 반환
-        return jsonify({"error": e.detail}), e.status_code
+    # except HTTPException as e:
+    #     # 인증 실패 시 에러 반환
+    #     return jsonify({"error": e.detail}), e.status_code
     except Exception as e:
         # 기타 에러 처리
         return jsonify({"error": f"Failed to update stocks: {str(e)}"}), 500
