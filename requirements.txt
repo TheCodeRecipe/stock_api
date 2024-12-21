@@ -4,3 +4,5 @@ yfinance
 psycopg2
 python-dotenv
 flask_cors
+fastapi
+python-jose
