@@ -512,8 +512,9 @@ def analyze_stocks_with_combined_logic(input_folder, output_path):
                 return f"{points[index][0]:.2f}" if len(points) > index else None
 
             all_results.append({
-                'StockName': stock,
-                'StockCode': stock_code,
+                'id': "",
+                'stockname': stock,
+                'stockcode': stock_code,
                 'CurrentPrice': current_price,
 
                 # 현재 가격변화/상승하락/거래량/거래량변동률
@@ -521,7 +522,6 @@ def analyze_stocks_with_combined_logic(input_folder, output_path):
                 'Price_Change_Status': "상승" if pct_change > 0 else "하락",
                 'Volume': volume,
                 'VolumeChangeRate': volume_change_rate,
-
 
                 'Action': action,
 
@@ -611,7 +611,6 @@ def analyze_stocks_with_combined_logic(input_folder, output_path):
     # print("최종 데이터프레임 확인:")
     # print(results_df.columns)
     # print(results_df.tail())      
-
 
     # Save the sorted results to the output CSV
     results_df.to_csv(output_path, index=False, encoding='utf-8-sig')

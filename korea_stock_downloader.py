@@ -5,55 +5,77 @@ from datetime import datetime, timedelta
 
 # 데이터를 가져오는 함수
 def fetch_yahoo_finance_data(stock_codes, output_folder):
-    # 오늘 날짜 설정
+    # 오늘 날짜 및 내일 날짜 설정
     today = datetime.now().strftime("%Y-%m-%d")
     tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
     for code, name in stock_codes.items():
         try:
+            # 기존 파일 확인
+            existing_files = [
+                f for f in os.listdir(output_folder)
+                if f.startswith(f"{name}_{code.replace('.KS', '').replace('.KQ', '')}")
+            ]
+
+            # 기존 파일에서 최신 날짜 추출
+            latest_date = None
+            existing_data = pd.DataFrame()
+            if existing_files:
+                latest_file = max(existing_files, key=lambda x: x.split("_")[-1].replace(".csv", ""))
+                latest_date = latest_file.split("_")[-1].replace(".csv", "")
+                existing_data = pd.read_csv(os.path.join(output_folder, latest_file), parse_dates=["Date"])
+
+            # 데이터 가져올 시작 날짜 설정
+            start_date = (datetime.strptime(latest_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d") if latest_date else "2020-01-01"
+
             # Yahoo Finance에서 데이터 가져오기
-            stock_data = yf.download(code, start="2020-01-01", end=tomorrow)
+            new_data = yf.download(code, start=start_date, end=tomorrow)
 
-            # 데이터가 비어 있는 경우
-            if stock_data.empty:
+            if new_data.empty:
                 print(f"데이터가 비어 있음: {name} ({code})")
-                continue
+                break
 
+            # 데이터 정리
+            new_data.columns = new_data.columns.get_level_values(0)
 
-            # 컬럼 확인 및 단일 레벨로 변환
-            stock_data.columns = stock_data.columns.get_level_values(0)
-
-            # Adj Close 확인
-            if "Adj Close" in stock_data.columns:
-                stock_data["Adj Close"] = stock_data["Adj Close"]
-            else:
+            if "Adj Close" not in new_data.columns:
                 print(f"'Adj Close'가 없음. 'Close'를 대신 사용합니다: {name} ({code})")
-                stock_data["Adj Close"] = stock_data["Close"]
+                new_data["Adj Close"] = new_data["Close"]
 
-
-            # 컬럼명 재정의 (가격 순서 올바르게 설정)
-            stock_data = stock_data.reset_index()
-            stock_data = stock_data.rename(columns={
+            new_data = new_data.reset_index()
+            new_data = new_data.rename(columns={
                 "Open": "Open",
                 "High": "High",
                 "Low": "Low",
                 "Close": "Close",
                 "Adj Close": "Adj Close",
-                "Volume": "Volume"
+                "Volume": "Volume",
+                "Date": "Date"
             })
 
-            # StockName과 StockCode 추가 (.KS 제거)
-            stock_data["StockName"] = name
-            stock_data["StockCode"] = code.replace(".KS", "").replace(".KQ", "")  # 확장자 제거
+            # StockName과 StockCode 추가
+            new_data["StockName"] = name
+            new_data["StockCode"] = code.replace(".KS", "").replace(".KQ", "")
 
             # 컬럼 순서 재정리
-            stock_data = stock_data[["Date", "StockName", "StockCode", "Open", "High", "Low", "Close", "Volume", "Adj Close"]]
+            new_data = new_data[["Date", "StockName", "StockCode", "Open", "High", "Low", "Close", "Volume", "Adj Close"]]
 
-            # 파일 저장 (인덱스 제거)
-            file_name = os.path.join(output_folder, f"{name}_{stock_data['StockCode'][0]}_{today}.csv")
-            stock_data.to_csv(file_name, index=False, encoding="utf-8-sig")
-            
-            print(f"{name} ({code}) 데이터 저장 완료: {file_name}")
+            # 기존 데이터와 새로운 데이터 병합
+            combined_data = pd.concat([existing_data, new_data])
+            combined_data = combined_data.drop_duplicates(subset=["Date", "StockCode"]).sort_values(by="Date")
+
+            # 새로운 파일 이름에 오늘 날짜 포함
+            new_file_name = os.path.join(output_folder, f"{name}_{code.replace('.KS', '').replace('.KQ', '')}_{today}.csv")
+
+            # 병합된 데이터 저장
+            combined_data.to_csv(new_file_name, index=False, encoding="utf-8-sig")
+            print(f"{name} ({code}) 데이터 저장 완료: {new_file_name}")
+
+            # 기존 파일 삭제
+            for old_file in existing_files:
+                old_file_path = os.path.join(output_folder, old_file)
+                os.remove(old_file_path)
+                print(f"기존 파일 삭제 완료: {old_file_path}")
+
         except Exception as e:
             print(f"에러 발생: {name} ({code}): {e}")
-

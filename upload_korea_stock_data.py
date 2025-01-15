@@ -1,7 +1,7 @@
 import psycopg2
 import pandas as pd
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
-from datetime import datetime
+from datetime import datetime, timezone
 
 # DB 연결 설정
 def connect_to_db():
@@ -26,7 +26,7 @@ def upload_data_to_db(conn, csv_file, market_type="KR"):
         data = pd.read_csv(csv_file)
 
         # 업로드 날짜와 시간 설정
-        upload_timestamp = datetime.now()  # 현재 날짜와 시간 (YYYY-MM-DD HH:MM:SS)
+        upload_timestamp = datetime.now(timezone.utc)  # 현재 날짜와 시간 (YYYY-MM-DD HH:MM:SS)
 
         # Cursor 생성
         cur = conn.cursor()
