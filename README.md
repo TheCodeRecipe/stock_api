@@ -23,4 +23,4 @@ Python의 Flask 프레임워크를 기반으로 작성되었습니다.
 
 🔗 **[Stock Signal 프론트엔드 리포지토리](https://github.com/TheCodeRecipe/stock-signal)**
 
-🔗 **[Stock Signal 스프링 리포지토리](https://github.com/TheCodeRecipe/stock-spring)**
+🔗 **[Stock Signal 스프링 리포지토리](https://github.com/TheCodeRecipe/stock_spring)**
